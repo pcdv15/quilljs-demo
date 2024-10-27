@@ -1,5 +1,5 @@
 import { AppBar, Box, Container, Toolbar, Typography } from "@mui/material";
-import "./style.css";
+import "./styles/style.css";
 
 function App() {
   return (
