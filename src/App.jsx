@@ -62,7 +62,7 @@ function App() {
           }}
         >
           <Grid container spacing={2} mt={2} sx={{ padding: 4 }}>
-            <Grid xs={12} md={8}>
+            <Grid item xs={12} md={8}>
               <Box
                 id="quill-editor"
                 sx={{ minHeight: "50vh", maxHeight: "50vh", maxWidth: "100%" }}
