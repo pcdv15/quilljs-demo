@@ -3,7 +3,8 @@
 import { forwardRef, useEffect, useRef } from "react";
 import Quill from "quill";
 import { QuillDeltaToHtmlConverter } from "quill-delta-to-html";
-import "quill/dist/quill.core.css";
+import "quill/dist/quill.snow.css";
+import "./styles/style.css";
 import { markerRegex } from "./constants";
 
 const Delta = Quill.import("delta");
@@ -18,6 +19,8 @@ class TemplateMarker extends Embed {
     node.setAttribute("class", `dynamic-variable`);
     node.setAttribute("data-marker", value.marker);
     node.setAttribute("data-title", value.title);
+
+    node.innerHTML = value.title;
 
     node.setAttribute("contenteditable", "false");
 
@@ -42,8 +45,7 @@ Quill.register({
 const QuillEditor = forwardRef(
   ({ config, defaultValue, setInnerHtml }, ref) => {
     const containerRef = useRef(null);
-    const defaultValueRef = useRef(defaultValue);
-
+    const defaultValueRef = useRef(defaultValue ?? "");
     useEffect(() => {
       const container = document.getElementById("quill-editor");
       containerRef.current = container;
@@ -60,7 +62,6 @@ const QuillEditor = forwardRef(
 
       const processMarkers = (quill, delta) => {
         const ops = delta.ops;
-        const markerRegex = /\{\{(.*?)\}\}/g;
 
         const newDelta = new Delta();
 
@@ -117,6 +118,9 @@ const QuillEditor = forwardRef(
         const delta = quill.getContents();
         const ops = delta.ops;
 
+        // Store the current selection position before making changes
+        const originalSelection = quill.getSelection();
+        let newCursorPos = originalSelection ? originalSelection.index : null;
         let currentIndex = 0;
 
         ops.forEach((op) => {
@@ -128,35 +132,38 @@ const QuillEditor = forwardRef(
               const startIndex = currentIndex + match.index;
 
               // Replace the plain marker text with a TemplateMarker
+
               quill.deleteText(
                 startIndex,
                 markerName.length,
                 Quill.sources.SILENT
               ); // Use SILENT to avoid triggering TEXT_CHANGE again
+
+              // Insert the TemplateMarker silently and add an extra space
               quill.insertEmbed(
                 startIndex,
                 "TemplateMarker",
                 {
-                  marker: markerName.replaceAll(/\s/g, ""),
+                  marker: markerName,
                   title: markerName.replace(/[{}]/g, "").trim(),
                 },
                 Quill.sources.SILENT
-              ); // Insert the TemplateMarker silently
+              );
 
+              // Add a space after the marker to separate it from other text
               quill.insertText(startIndex + 1, " ", Quill.sources.SILENT);
-              quill.setSelection(startIndex + 2, Quill.sources.SILENT);
+
+              // Update the cursor position to the end of this new marker
+              newCursorPos = startIndex + 2;
             }
           }
 
-          currentIndex += op.insert.length || 1; // Update current index position
+          currentIndex += op.insert.length || 1; // Update current index position for non-string inserts
         });
 
-        // Prevent moving the cursor after the last marker
-        const markerPosition = quill.getLength() - 2;
-        const selection = quill.getSelection();
-
-        if (selection && selection.index > markerPosition) {
-          quill.setSelection(markerPosition, Quill.sources.SILENT);
+        // Set the cursor to the calculated new position if there was an insertion
+        if (newCursorPos !== null) {
+          quill.setSelection(newCursorPos, Quill.sources.SILENT);
         }
 
         isHandlingChange = false; // Reset the flag after handling
@@ -174,20 +181,6 @@ const QuillEditor = forwardRef(
         let html = qdc.convert();
 
         setInnerHtml(html);
-
-        // Convert the Delta to plain text
-        // const plainTextDelta = quill.getContents();
-        // let plainTextWithMarkers = "";
-
-        // plainTextDelta.ops.forEach((op) => {
-        //   if (typeof op.insert === "string") {
-        //     plainTextWithMarkers += op.insert;
-        //   } else if (op.insert.TemplateMarker) {
-        //     plainTextWithMarkers += `${op.insert.TemplateMarker.marker}`;
-        //   }
-        // });
-
-        // setInnerPlainText(plainTextWithMarkers);
       });
 
       quill.root.addEventListener("copy", (e) => {
