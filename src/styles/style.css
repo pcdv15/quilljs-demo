@@ -6,3 +6,16 @@ body {
   height: 100%;
   box-sizing: border-box;
 }
+
+.dynamic-variable {
+  color: #739574;
+  background-color: #b7deb8;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline;
+  white-space: nowrap;
+}
+
+.ql-editor p {
+  line-height: 1.5;
+}
