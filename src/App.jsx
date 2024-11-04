@@ -68,6 +68,7 @@ function App() {
                 sx={{ minHeight: "50vh", maxHeight: "50vh", maxWidth: "100%" }}
               >
                 <QuillEditor
+                  defaultValue={"Hello {{user}} "}
                   config={quillConfig}
                   ref={editorRef}
                   setInnerHtml={setInnerHtml}

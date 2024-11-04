@@ -45,7 +45,7 @@ Quill.register({
 const QuillEditor = forwardRef(
   ({ config, defaultValue, setInnerHtml }, ref) => {
     const containerRef = useRef(null);
-    const defaultValueRef = useRef(defaultValue ?? "");
+
     useEffect(() => {
       const container = document.getElementById("quill-editor");
       containerRef.current = container;
@@ -101,11 +101,11 @@ const QuillEditor = forwardRef(
         quill.setContents(newDelta); // Update Quill with the new Delta
       };
 
-      if (defaultValueRef.current) {
-        const delta = quill.clipboard.convert(defaultValueRef.current); // Convert HTML to Delta
+      if (defaultValue) {
+        const delta = new Delta().insert(defaultValue); // Convert HTML to Delta
 
         processMarkers(quill, delta);
-        setInnerHtml(defaultValueRef.current);
+        setInnerHtml(defaultValue);
       }
 
       let isHandlingChange = false; // Flag to prevent recursive text change handling
